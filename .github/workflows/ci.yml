@@ -1,5 +1,6 @@
 name: CI
 
+# Trigger workflow on pushes and pull requests to main branch
 on:
   push:
     branches: [ main ]
@@ -9,17 +10,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: |
+          echo "Installing dependencies..."
+          npm ci || npm install
 
+      # Step 4: Run tests (skip safely if none)
       - name: Run tests
-        run: npm test
+        run: |
+          if npm run | grep -q "test"; then
+            echo "Running tests..."
+            npm test
+          else
+            echo "No test script found — skipping tests."
+          fi
+
+      # Step 5: Build (optional — skip safely if no build script)
+      - name: Build project
+        run: |
+          if npm run | grep -q "build"; then
+            echo "Building project..."
+            npm run build
+          else
+            echo "No build script found — skipping build."
+          fi
